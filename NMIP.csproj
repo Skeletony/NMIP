@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8298EAB6-0586-4BDA-9483-83624B66B13A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NMIP</RootNamespace>
+    <AssemblyName>NMIP</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>
+    </ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Buffs\spikedIcePet.cs" />
+    <Compile Include="Items\Accessories\CharmofAres.cs" />
+    <Compile Include="Items\Accessories\MoltenAz.cs" />
+    <Compile Include="Items\Accessories\MoltenAzz.cs" />
+    <Compile Include="Items\Armor\BloodborneBootscs.cs" />
+    <Compile Include="Items\Armor\BloodborneChestplate.cs" />
+    <Compile Include="Items\Armor\BloodborneHelmet.cs" />
+    <Compile Include="Items\Axe.cs" />
+    <Compile Include="Items\Materials\Bard.cs" />
+    <Compile Include="Items\Materials\BloodCotton.cs" />
+    <Compile Include="Items\Materials\MoltenBar.cs" />
+    <Compile Include="Items\Materials\MoltenBones.cs" />
+    <Compile Include="Items\Materials\MoltenRock.cs" />
+    <Compile Include="Items\Materials\MoltenSoul.cs" />
+    <Compile Include="Items\Materials\Shard.cs" />
+    <Compile Include="Items\MoltenHamaxe.cs" />
+    <Compile Include="Items\MoltenPick.cs" />
+    <Compile Include="Items\Pick.cs" />
+    <Compile Include="Items\Placeables\Ored.cs" />
+    <Compile Include="Items\Weapons\Magic\BloodspikeStaff.cs" />
+    <Compile Include="Items\Weapons\Magic\MoltenBook.cs" />
+    <Compile Include="Items\Weapons\Magic\Staff.cs" />
+    <Compile Include="Items\Weapons\Melee\Bloodstream.cs" />
+    <Compile Include="Items\Weapons\Melee\BoneSword.cs" />
+    <Compile Include="Items\Weapons\Melee\CrimsonRain.cs" />
+    <Compile Include="Items\Weapons\Melee\IceSword.cs" />
+    <Compile Include="Items\Weapons\Melee\MoltenBlade.cs" />
+    <Compile Include="Items\Weapons\Ranged\FrostBow.cs" />
+    <Compile Include="Items\Weapons\Ranged\KillerBow.cs" />
+    <Compile Include="Items\Weapons\Ranged\MoltenBow.cs" />
+    <Compile Include="Items\Weapons\Throwing\IceDagger.cs" />
+    <Compile Include="Items\IceThing.cs" />
+    <Compile Include="Items\Materials\AncientMachinery.cs" />
+    <Compile Include="Items\Materials\FrostFragment.cs" />
+    <Compile Include="Items\Materials\IceBar.cs" />
+    <Compile Include="Items\Placeables\IceOre.cs" />
+    <Compile Include="Items\Materials\Shell.cs" />
+    <Compile Include="Items\ODINSpawner.cs" />
+    <Compile Include="Items\ODIN\EldritchSword.cs" />
+    <Compile Include="Items\ODIN\ODINBag.cs" />
+    <Compile Include="Items\ODIN\ODINmask.cs" />
+    <Compile Include="Items\ODIN\ODINtrophy.cs" />
+    <Compile Include="Items\ODIN\skell.cs" />
+    <Compile Include="Items\Weapons\Melee\StoneSword.cs" />
+    <Compile Include="Items\Weapons\Throwing\SoulDagger.cs" />
+    <Compile Include="NMIP.cs" />
+    <Compile Include="NMIPGlobalNPC.cs" />
+    <Compile Include="NMIPPlayer.cs" />
+    <Compile Include="NMIPWorld.cs" />
+    <Compile Include="NPCs\Bosses\ODIN\CrystalShadow.cs" />
+    <Compile Include="NPCs\Bosses\ODIN\ODIN.cs" />
+    <Compile Include="NPCs\Bosses\ODIN\ShadowBall.cs" />
+    <Compile Include="NPCs\DroneEye.cs" />
+    <Compile Include="NPCs\GiantIgneousWorm.cs" />
+    <Compile Include="NPCs\ice.cs" />
+    <Compile Include="NPCs\IceEater.cs" />
+    <Compile Include="NPCs\MoltenFloat.cs" />
+    <Compile Include="NPCs\MoltenSlime.cs" />
+    <Compile Include="NPCs\MoltenWorm.cs" />
+    <Compile Include="NPCs\Worm.cs" />
+    <Compile Include="Projectiles\BlizzardArrow.cs" />
+    <Compile Include="Projectiles\BloodSpike.cs" />
+    <Compile Include="Projectiles\CrimsonRain.cs" />
+    <Compile Include="Projectiles\IceDagger.cs" />
+    <Compile Include="Projectiles\IceProjectile.cs" />
+    <Compile Include="Projectiles\IceThing.cs" />
+    <Compile Include="Projectiles\JupitersRay.cs" />
+    <Compile Include="Projectiles\Hostile\ODINAttack.cs" />
+    <Compile Include="Projectiles\KillerArrow.cs" />
+    <Compile Include="Projectiles\MagicBolt.cs" />
+    <Compile Include="Projectiles\MagmaShower.cs" />
+    <Compile Include="Projectiles\SansFlame.cs" />
+    <Compile Include="Projectiles\SoulDagger.cs" />
+    <Compile Include="Projectiles\StoneProjectile.cs" />
+    <Compile Include="Tiles\CrystalForestTile.cs" />
+    <Compile Include="Tiles\CrystalForestTree.cs" />
+    <Compile Include="Tiles\GravityPad.cs" />
+    <Compile Include="Tiles\IceOre.cs" />
+    <Compile Include="Tiles\MoltenRock.cs" />
+    <Compile Include="Tiles\ODINtrophy.cs" />
+    <Compile Include="WorldMethods.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="BaseMod">
+      <HintPath>.\BaseMod.dll</HintPath>
+    </Reference>
+    <Reference Include="GlowMaskAPI">
+      <HintPath>.\GlowMaskAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Windows\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Windows\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework.Game\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Windows\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework.Graphics\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Graphics.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Xact, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Windows\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework.Xact\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Xact.dll</HintPath>
+    </Reference>
+    <Reference Include="ReLogic">
+      <HintPath>..\..\..\..\..\..\Downloads\ReLogic.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Terraria">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\terraria\Terraria.exe</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Gores\" />
+    <Folder Include="Items\Armor\Vanity\" />
+    <Folder Include="Properties\" />
+    <Folder Include="Sounds\Music\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"C:\Program Files (x86)\Steam\steamapps\common\terraria\tModLoaderServer.exe" -build "$(ProjectDir)\" -eac "$(TargetPath)"</PostBuildEvent>
+  </PropertyGroup>
+</Project>

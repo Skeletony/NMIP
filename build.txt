@@ -1,0 +1,7 @@
+author = Skeletony
+version = 0.104
+displayName = [c/B670D4:New Mythical Items Plus]
+buildIgnore = *.csproj, *.zip, *.user, obj\*, bin\*, .vs\*, .git\*, *.gitignore
+includePDB = false
+modReferences = BaseMod
+homepage = https://discord.gg/ArhPUYv
