@@ -26,7 +26,7 @@ namespace NMIP.Items.Accessories
         public override void UpdateAccessory(Player player, bool hideVisual)
         {
             player.statDefense += 10;
-            player.GetModPlayer<NMIPPlayer>(mod).ToxicExtract = true;
+            player.GetModPlayer<NMIPPlayer>(mod).toxicExtract = true;
         }
     }
 }

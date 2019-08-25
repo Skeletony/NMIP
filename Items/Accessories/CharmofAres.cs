@@ -30,7 +30,7 @@ namespace NMIP.Items.Accessories
             player.AddBuff(114, 18000);
             player.AddBuff(117, 18000);
             player.meleeDamage += 0.2f;
-            player.GetModPlayer<NMIPPlayer>(mod).AresEffect = true;
+            player.GetModPlayer<NMIPPlayer>(mod).aresEffect = true;
         }
 
         public override void AddRecipes()

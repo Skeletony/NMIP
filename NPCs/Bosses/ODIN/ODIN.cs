@@ -10,13 +10,11 @@ namespace NMIP.NPCs.Bosses.ODIN
     [AutoloadBossHead]
     public class ODIN : ModNPC
     {
-
         private int moveTime = 300;
         private int moveTimer = 60;
 
         public override void SetStaticDefaults()
         {
-            DisplayName.SetDefault("ODIN");
             Main.npcFrameCount[npc.type] = 4;
         }
         public override void SetDefaults()

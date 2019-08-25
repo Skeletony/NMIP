@@ -1,19 +1,11 @@
-﻿using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace NMIP.NPCs.Bosses.ODIN
 {
-	public class CrystalShadow : ModProjectile
+    public class CrystalShadow : ModProjectile
 	{
-		public override void SetStaticDefaults()
-		{
-			DisplayName.SetDefault("Tech Laser");
-		}
-
 		public override void SetDefaults()
 		{
 			projectile.width = projectile.height = 1;

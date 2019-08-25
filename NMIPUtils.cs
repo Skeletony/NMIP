@@ -1,28 +1,29 @@
-using System.IO;
-using System.Collections.Generic;
 using Terraria;
 using System;
 using Terraria.ID;
-using Terraria.ModLoader;
-using Terraria.World.Generation;
 using Microsoft.Xna.Framework;
-using Terraria.GameContent.Generation;
 
 namespace NMIP
 {
-	public class WorldMethods
+    public class NMIPUtils
 	{
+        public static Vector2 SinCos(int angle)
+        {
+            float r = MathHelper.ToRadians(angle);
+            return new Vector2((float)Math.Sin(r), (float)Math.Cos(r));
+        }
+
 		public static void RoundHill(int X, int Y, int Xmult, int Ymult, int strength, bool initialplace, ushort type)
 		{
 			if (initialplace)
 			{
-				WorldMethods.TileRunner(X, Y, (double)strength * 5, 1, type, true, 0f, 0f, true, true);
+				NMIPUtils.TileRunner(X, Y, (double)strength * 5, 1, type, true, 0f, 0f, true, true);
 			}
 			for (int rotation2 = 0; rotation2 < 350; rotation2++)
 			{
 				int DistX = (int)(0 - (Math.Sin(rotation2) * Xmult));
 				int DistY = (int)(0 - (Math.Cos(rotation2) * Ymult));
-				WorldMethods.TileRunner(X + DistX, Y + DistY, (double)strength, 1, type, true, 0f, 0f, true, true);
+				NMIPUtils.TileRunner(X + DistX, Y + DistY, (double)strength, 1, type, true, 0f, 0f, true, true);
 			}
 		}
 
@@ -30,13 +31,13 @@ namespace NMIP
 		{
 			if (initialplace)
 			{
-				WorldMethods.TileRunner(X, Y, (double)strength * 5, 1, type, false, 0f, 0f, true, true);
+				NMIPUtils.TileRunner(X, Y, (double)strength * 5, 1, type, false, 0f, 0f, true, true);
 			}
 			for (int rotation2 = 0; rotation2 < 350; rotation2++)
 			{
 				int DistX = (int)(0 - (Math.Sin(rotation2) * Xmult));
 				int DistY = (int)(0 - (Math.Cos(rotation2) * Ymult));
-				WorldMethods.TileRunner(X + DistX, Y + DistY, (double)strength, 1, type, false, 0f, 0f, true, true);
+				NMIPUtils.TileRunner(X + DistX, Y + DistY, (double)strength, 1, type, false, 0f, 0f, true, true);
 			}
 		}
 
@@ -69,12 +70,12 @@ namespace NMIP
 				//Main.NewText(SlopeText, Color.Orange.R, Color.Orange.G, Color.Orange.B);
 				for (int I = 0; I < Slope2; I++)
 				{
-					WorldMethods.TileRunner(xAxis, Y + I, Xsize / 5, 1, tile, true, 0f, 0f, true, true);
+					NMIPUtils.TileRunner(xAxis, Y + I, Xsize / 5, 1, tile, true, 0f, 0f, true, true);
 				}
-				WorldMethods.TileRunner(xAxis, Y, Xsize / 5, 1, tile, true, 0f, 0f, true, true);
+				NMIPUtils.TileRunner(xAxis, Y, Xsize / 5, 1, tile, true, 0f, 0f, true, true);
 				if (Main.rand.Next(5) == 0)
 				{
-					WorldMethods.RoundHill(xAxis, Y, Xsize / 8, Xsize / 12, Xsize / 5, true, tile);
+					NMIPUtils.RoundHill(xAxis, Y, Xsize / 8, Xsize / 12, Xsize / 5, true, tile);
 
 				}
 				//   if (Main.rand.Next(55) == 0)
@@ -819,7 +820,7 @@ IL_5C5:
 				{
 					int num42 = Main.rand.Next(rectangle2.X, rectangle2.X + rectangle2.Width);
 					int num43 = Main.rand.Next(rectangle2.Y, rectangle2.Y + rectangle2.Height);
-					vector = WorldMethods.templePather(vector, num42, num43);
+					vector = NMIPUtils.templePather(vector, num42, num43);
 					if (vector.X == (float)num42 && vector.Y == (float)num43)
 					{
 						flag2 = false;
@@ -855,7 +856,7 @@ IL_5C5:
 						{
 							int num45 = Main.rand.Next(x2 - 6, x2 + 7);
 							int num46 = Main.rand.Next(y3 - 6, y3 + 7);
-							vector = WorldMethods.templePather(vector, num45, num46);
+							vector = NMIPUtils.templePather(vector, num45, num46);
 							if (vector.X == (float)num45 && vector.Y == (float)num46)
 							{
 								flag2 = false;
@@ -872,7 +873,7 @@ IL_5C5:
 						{
 							int num50 = Main.rand.Next(num48 - 6, num48 + 7);
 							int num51 = Main.rand.Next(num49 - 6, num49 + 7);
-							vector = WorldMethods.templePather(vector, num50, num51);
+							vector = NMIPUtils.templePather(vector, num50, num51);
 							if (vector.X == (float)num50 && vector.Y == (float)num51)
 							{
 								flag2 = false;
@@ -912,28 +913,28 @@ IL_5C5:
 			{
 				for (int num58 = num54; num58 < num55; num58++)
 				{
-					WorldMethods.outerTempled(num57, num58);
+					NMIPUtils.outerTempled(num57, num58);
 				}
 			}
 			for (int num59 = num53; num59 >= num52; num59--)
 			{
 				for (int num60 = num54; num60 < num55 / 2; num60++)
 				{
-					WorldMethods.outerTempled(num59, num60);
+					NMIPUtils.outerTempled(num59, num60);
 				}
 			}
 			for (int num61 = num54; num61 < num55; num61++)
 			{
 				for (int num62 = num52; num62 < num53; num62++)
 				{
-					WorldMethods.outerTempled(num62, num61);
+					NMIPUtils.outerTempled(num62, num61);
 				}
 			}
 			for (int num63 = num55; num63 >= num54; num63--)
 			{
 				for (int num64 = num52; num64 < num53; num64++)
 				{
-					WorldMethods.outerTempled(num64, num63);
+					NMIPUtils.outerTempled(num64, num63);
 				}
 			}
 			num3 = -num4;
@@ -1024,14 +1025,14 @@ IL_5C5:
 			{
 				for (int num82 = num54; num82 < num55; num82++)
 				{
-					WorldMethods.templeCleaner(num81, num82);
+					NMIPUtils.templeCleaner(num81, num82);
 				}
 			}
 			for (int num83 = num55; num83 >= num54; num83--)
 			{
 				for (int num84 = num53; num84 >= num52; num84--)
 				{
-					WorldMethods.templeCleaner(num84, num83);
+					NMIPUtils.templeCleaner(num84, num83);
 				}
 			}
 			for (int num85 = num52; num85 < num53; num85++)

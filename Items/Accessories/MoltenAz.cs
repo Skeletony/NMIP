@@ -29,10 +29,10 @@ namespace NMIP.Items.Accessories
             player.lavaImmune = true;
             player.fireWalk = true;
             player.buffImmune[24] = true;
-            if (player.lavaWet == true && player.GetModPlayer<NMIPPlayer>(mod).GodMoltenEffect == false)
+            if (player.lavaWet == true && player.GetModPlayer<NMIPPlayer>(mod).godMoltenEffect == false)
             {
                 player.statDefense += 15;
-                player.GetModPlayer<NMIPPlayer>(mod).MoltenEffect = true;
+                player.GetModPlayer<NMIPPlayer>(mod).moltenEffect = true;
             }
         }
     }

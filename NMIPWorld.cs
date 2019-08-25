@@ -12,6 +12,11 @@ using Terraria.ModLoader.IO;
 using System.Reflection;
 using Terraria.Utilities;
 using System.Runtime.Serialization.Formatters.Binary;
+using NMIP.Walls;
+using NMIP.Tiles;
+using NMIP.Worldgeneration;
+using Terraria.Localization;
+using BaseMod;
 
 namespace NMIP
 {
@@ -22,21 +27,34 @@ namespace NMIP
         public static bool downedODIN = false;
         public static bool IceOre;
         public static bool MoltenOre;
+        public static bool downedStarboss = false;
+
+        //tile ints
+        public static int toxinTiles = 0;
+
+        private Vector2 ToxinCenter = -Vector2.One;
+        private Vector2 toxinpos = new Vector2(0, 0);
+        private int otherSide = 0;
 
         public override void Initialize()
         {
             downedODIN = false;
             IceOre = NPC.downedPlantBoss;
             MoltenOre = Main.hardMode;
+            ToxinCenter = -Vector2.One;
+            toxinpos = new Vector2(0, 0);
+            downedStarboss = false;
         }
 
         public override TagCompound Save()
         {
             var downed = new List<string>();
             if (downedODIN) downed.Add("ODIN");
+            if (downedStarboss) downed.Add("Starboss");
 
             return new TagCompound {
-                {"downed", downed}
+                {"downed", downed},
+                {"TXCenter", ToxinCenter}
             };
         }
 
@@ -44,8 +62,14 @@ namespace NMIP
         {
             var downed = tag.GetList<string>("downed");
             downedODIN = downed.Contains("ODIN");
+            downedStarboss = downed.Contains("Starboss");
             IceOre = NPC.downedPlantBoss;
             MoltenOre = Main.hardMode;
+
+            if (tag.ContainsKey("TXCenter")) // check if the altar coordinates exist in the save file
+            {
+                ToxinCenter = tag.Get<Vector2>("TXCenter");
+            }
         }
 
         public override void LoadLegacy(BinaryReader reader)
@@ -56,14 +80,15 @@ namespace NMIP
                 BitsByte flags = reader.ReadByte();
                 downedODIN = flags[0];
             }
- 
         }
 
         public override void NetSend(BinaryWriter writer)
         {
             BitsByte flags = new BitsByte();
             flags[0] = downedODIN;
+            flags[1] = downedStarboss;
             writer.Write(flags);
+            writer.WriteVector2(ToxinCenter);
 
             //If you prefer, you can use the BitsByte constructor approach as well.
             //writer.Write(saveVersion);
@@ -89,251 +114,79 @@ namespace NMIP
         {
             BitsByte flags = reader.ReadByte();
             downedODIN = flags[0];
+            downedStarboss = flags[1];
+            ToxinCenter = reader.ReadVector2();
         }
 
-        public void PlaceCrystalForest(int x, int y)
+        public override void ModifyWorldGenTasks(List<GenPass> tasks, ref float totalWeight)
         {
-            //initial pit
-            WorldMethods.TileRunner(x, y, (double)150, 1, mod.TileType("ReachGrassTile"), false, 0f, 0f, true, true); //improve basic shape later
-            bool leftpit = false;
-            int PitX;
-            int PitY;
-            if (Main.rand.Next(2) == 0)
+            int shiniesIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Shinies"));
+            int ChaosIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Slush"));
+            int shiniesIndex1 = tasks.FindIndex(genpass => genpass.Name.Equals("Micro Biomes"));
+            int shiniesIndex2 = tasks.FindIndex(genpass => genpass.Name.Equals("Final Cleanup"));
+
+            tasks.Insert(ChaosIndex + 1, new PassLegacy("ToxinCave", delegate (GenerationProgress progress)
             {
-                leftpit = true;
-            }
-            if (leftpit)
-            {
-                PitX = x - Main.rand.Next(5, 15);
-            }
-            else
-            {
-                PitX = x + Main.rand.Next(5, 15);
-            }
-            for (PitY = y - 16; PitY < y + 25; PitY++)
-            {
-                WorldGen.digTunnel(PitX, PitY, 0, 0, 1, 4, false);
-                WorldGen.TileRunner(PitX, PitY, 11, 1, mod.TileType("ReachGrassTile"), false, 0f, 0f, false, true);
-            }
-            //tunnel off of pit
-            int tunnellength = Main.rand.Next(50, 110);
-            int TunnelEndX = 0;
-            if (leftpit)
-            {
-                for (int TunnelX = PitX; TunnelX < PitX + tunnellength; TunnelX++)
-                {
-                    WorldGen.digTunnel(TunnelX, PitY, 0, 0, 1, 4, false);
-                    WorldGen.TileRunner(TunnelX, PitY, 13, 1, mod.TileType("ReachGrassTile"), false, 0f, 0f, false, true);
-                    TunnelEndX = TunnelX;
-                }
-            }
-            else
-            {
-                for (int TunnelX = PitX; TunnelX > PitX - tunnellength; TunnelX--)
-                {
-                    WorldGen.digTunnel(TunnelX, PitY, 0, 0, 1, 4, false);
-                    WorldGen.TileRunner(TunnelX, PitY, 13, 1, mod.TileType("ReachGrassTile"), false, 0f, 0f, false, true);
-                    TunnelEndX = TunnelX;
-                }
-            }
-            //More pits and spikes
-            int TrapX;
-            for (int TrapNum = 0; TrapNum < 10; TrapNum++)
-            {
-                if (leftpit)
-                {
-                    TrapX = Main.rand.Next(PitX, PitX + tunnellength);
-                }
-                else
-                {
-                    TrapX = Main.rand.Next(PitX - tunnellength, PitX);
-                }
-                for (int TrapY = PitY; TrapY < PitY + 15; TrapY++)
-                {
-                    WorldGen.digTunnel(TrapX, TrapY, 0, 0, 1, 3, false);
-                    WorldGen.TileRunner(TrapX, TrapY, 11, 1, mod.TileType("ReachGrassTile"), false, 0f, 0f, false, true);
-                }
-                WorldGen.TileRunner(TrapX, PitY + 18, 9, 1, 48, false, 0f, 0f, false, true);
-            }
-            //Additional hole and tunnel
-            int PittwoY = 0;
-            for (PittwoY = PitY; PittwoY < PitY + 40; PittwoY++)
-            {
-                WorldGen.digTunnel(TunnelEndX, PittwoY, 0, 0, 1, 4, false);
-                WorldGen.TileRunner(TunnelEndX, PittwoY, 11, 1, mod.TileType("ReachGrassTile"), false, 0f, 0f, false, true);
-            }
-            int PittwoX = 0;
-            for (PittwoX = TunnelEndX - 50; PittwoX < TunnelEndX + 50; PittwoX++)
-            {
-                WorldGen.digTunnel(PittwoX, PittwoY, 0, 0, 1, 4, false);
-                WorldGen.TileRunner(PittwoX, PittwoY, 13, 1, mod.TileType("ReachGrassTile"), false, 0f, 0f, false, true);
-                WorldGen.PlaceChest(PittwoX, PittwoY, 21, false, 2);
-                WorldGen.PlaceChest(PittwoX + 5, PittwoY + 3, 21, false, 2);
-                WorldGen.PlaceChest(PittwoX + 1, PittwoY + 2, 21, false, 2);
-            }
-            //grass walls
-            for (int wallx = x - 100; wallx < x + 100; wallx++)
-            {
-                for (int wally = y - 25; wally < y + 100; wally++)
-                {
-                    if (Main.tile[wallx, wally].wall != 0)
-                    {
-                        WorldGen.KillWall(wallx, wally);
-                        WorldGen.PlaceWall(wallx, wally, 63);
-                    }
-                }
-            }
-            //campfires and shit
-            int SkullStickY = 0;
-            Tile tile = Main.tile[1, 1];
-            for (int SkullStickX = x - 90; SkullStickX < x + 90; SkullStickX++)
-            {
-                if (Main.rand.Next(4) == 1)
-                {
-                    for (SkullStickY = y - 80; SkullStickY < y + 75; SkullStickY++)
-                    {
-                        tile = Main.tile[SkullStickX, SkullStickY];
-                        if (tile.type == 2 || tile.type == 1 || tile.type == 0)
-                        {
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 2, 215);//i dont know which of these is correct but i cant be bothered to test.
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 1, 215);
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY, 215);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 2, 215, 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 1, 215, 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY, 215, 0, 0, -1, -1);
-                        }
-                    }
-                }
-                if (Main.rand.Next(9) == 1)
-                {
-                    for (SkullStickY = y - 60; SkullStickY < y + 75; SkullStickY++)
-                    {
-                        tile = Main.tile[SkullStickX, SkullStickY];
-                        if (tile.type == 2 || tile.type == 1 || tile.type == 0 || tile.type == mod.TileType("ReachGrassTile"))
-                        {
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 3, mod.TileType("SkullStick")); //i dont know which of these is correct but i cant be bothered to test.
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 2, mod.TileType("SkullStick"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 1, mod.TileType("SkullStick"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY, mod.TileType("SkullStick"));
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 3, mod.TileType("SkullStick"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 2, mod.TileType("SkullStick"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 1, mod.TileType("SkullStick"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY, mod.TileType("SkullStick"), 0, 0, -1, -1);
-                        }
-                    }
-                }
-                if (Main.rand.Next(12) == 1)
-                {
-                    for (SkullStickY = y - 60; SkullStickY < y + 75; SkullStickY++)
-                    {
-                        tile = Main.tile[SkullStickX, SkullStickY];
-                        if (tile.type == 2 || tile.type == 1 || tile.type == 0 || tile.type == mod.TileType("ReachGrassTile"))
-                        {
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 3, mod.TileType("SkullStick2")); //i dont know which of these is correct but i cant be bothered to test.
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 2, mod.TileType("SkullStick2"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 1, mod.TileType("SkullStick2"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY, mod.TileType("SkullStick2"));
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 3, mod.TileType("SkullStick2"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 2, mod.TileType("SkullStick2"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 1, mod.TileType("SkullStick2"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY, mod.TileType("SkullStick2"), 0, 0, -1, -1);
-                        }
-                    }
-                }
-                if (Main.rand.Next(10) == 1)
-                {
-                    for (SkullStickY = y - 60; SkullStickY < y + 75; SkullStickY++)
-                    {
-                        tile = Main.tile[SkullStickX, SkullStickY];
-                        if (tile.type == 2 || tile.type == 1 || tile.type == 0 || tile.type == mod.TileType("ReachGrassTile"))
-                        {
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 3, mod.TileType("SkullStick3")); //i dont know which of these is correct but i cant be bothered to test.
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 2, mod.TileType("SkullStick3"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 1, mod.TileType("SkullStick3"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY, mod.TileType("SkullStick3"));
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 3, mod.TileType("SkullStick3"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 2, mod.TileType("SkullStick3"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 1, mod.TileType("SkullStick3"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY, mod.TileType("SkullStick3"), 0, 0, -1, -1);
-                        }
-                    }
-                }
-                if (Main.rand.Next(25) == 1)
-                {
-                    for (SkullStickY = y - 60; SkullStickY < y + 75; SkullStickY++)
-                    {
-                        tile = Main.tile[SkullStickX, SkullStickY];
-                        if (tile.type == 2 || tile.type == 1 || tile.type == 0 || tile.type == mod.TileType("ReachGrassTile"))
-                        {
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 3, mod.TileType("CreationAltarTile")); //i dont know which of these is correct but i cant be bothered to test.
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 2, mod.TileType("CreationAltarTile"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 1, mod.TileType("CreationAltarTile"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY, mod.TileType("CreationAltarTile"));
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 3, mod.TileType("CreationAltarTile"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 2, mod.TileType("CreationAltarTile"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 1, mod.TileType("CreationAltarTile"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY, mod.TileType("CreationAltarTile"), 0, 0, -1, -1);
-                        }
-                    }
-                }
-                if (Main.rand.Next(10) == 1)
-                {
-                    for (SkullStickY = y - 60; SkullStickY < y + 75; SkullStickY++)
-                    {
-                        tile = Main.tile[SkullStickX, SkullStickY];
-                        if (tile.type == 2 || tile.type == 1 || tile.type == 0 || tile.type == mod.TileType("ReachGrassTile"))
-                        {
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 3, mod.TileType("ReachGrass1")); //i dont know which of these is correct but i cant be bothered to test.
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 2, mod.TileType("ReachGrass1"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY - 1, mod.TileType("ReachGrass1"));
-                            WorldGen.PlaceObject(SkullStickX, SkullStickY, mod.TileType("ReachGrass1"));
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 3, mod.TileType("ReachGrass1"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 2, mod.TileType("ReachGrass1"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY - 1, mod.TileType("ReachGrass1"), 0, 0, -1, -1);
-                            NetMessage.SendObjectPlacment(-1, SkullStickX, SkullStickY, mod.TileType("ReachGrass1"), 0, 0, -1, -1);
-                        }
-                    }
-                }
-                if (Main.rand.Next(16) == 1)
-                {
-                    for (SkullStickY = y - 60; SkullStickY < y + 75; SkullStickY++)
-                    {
-                        tile = Main.tile[SkullStickX, SkullStickY];
-                        if (tile.type == 2 || tile.type == 1 || tile.type == 0 || tile.type == mod.TileType("ReachGrassTile"))
-                        {
-                            WorldGen.PlaceChest(SkullStickX, SkullStickY - 3, (ushort)mod.TileType("ReachChest"), false, 0);
-                            WorldGen.PlaceChest(SkullStickX, SkullStickY - 2, (ushort)mod.TileType("ReachChest"), false, 0);
-                            WorldGen.PlaceChest(SkullStickX, SkullStickY - 1, (ushort)mod.TileType("ReachChest"), false, 0);
-                        }
-                    }
-                }
-            }
-            //loot placement
-            for (PittwoX = TunnelEndX - 20; PittwoX < TunnelEndX + 20; PittwoX++)
-            {
-                if (Main.rand.Next(30) == 1)
-                {
-                    Main.tile[PittwoX, PittwoY + 1].active(true);
-                    Main.tile[PittwoX + 1, PittwoY + 1].active(true);
-                    Main.tile[PittwoX, PittwoY + 1].type = 1;
-                    Main.tile[PittwoX + 1, PittwoY + 1].type = 1;
-                    WorldGen.AddLifeCrystal(PittwoX + 1, PittwoY);
-                    WorldGen.AddLifeCrystal(PittwoX + 1, PittwoY + 1);
-                    break;
-                }
-            }
-            for (int trees = 0; trees < 5000; trees++)
-            {
-                int E = x + Main.rand.Next(-200, 200);
-                int F = y + Main.rand.Next(-30, 30);
-                tile = Framing.GetTileSafely(E, F);
-                if (tile.type == mod.TileType("ReachGrassTile"))
-                {
-                    WorldGen.GrowTree(E, F);
-                }
-            }
+                ToxinCave(progress);
+            }));
         }
 
+        public override void TileCountsAvailable(int[] tileCounts)
+        {
+            Main.sandTiles += tileCounts[mod.TileType<Toxicsand>()] + tileCounts[mod.TileType<Toxicsandstone>()] + tileCounts[mod.TileType<ToxicsandHardened>()];
+            Main.snowTiles += tileCounts[mod.TileType<GreenIce>()];
+            toxinTiles = tileCounts[mod.TileType<ToxinGrass>()] + tileCounts[mod.TileType<ToxinStone>()] + tileCounts[mod.TileType<Toxicsand>()] + tileCounts[mod.TileType<Toxicsandstone>()] + tileCounts[mod.TileType<ToxicsandHardened>()] + tileCounts[mod.TileType<GreenIce>()];
+            Main.jungleTiles += toxinTiles;
+        }
+
+        private void ToxinCave(GenerationProgress progress)
+        {
+            otherSide = (Main.dungeonX > Main.maxTilesX / 2) ? (-1) : 1;
+            toxinpos.X = (Main.maxTilesX >= 8000) ? (otherSide != 1 ? WorldGen.genRand.Next(2000, 2300) : (Main.maxTilesX - WorldGen.genRand.Next(2000, 2300))) : (otherSide != 1 ? WorldGen.genRand.Next(1500, 1700) : (Main.maxTilesX - WorldGen.genRand.Next(1500, 1700)));
+            int q = (int)WorldGen.worldSurfaceLow - 30;
+            while (Main.tile[(int)toxinpos.X, q] != null && !Main.tile[(int)toxinpos.X, q].active())
+            {
+                q++;
+            }
+            for (int l = (int)toxinpos.X - 25; l < (int)toxinpos.X + 25; l++)
+            {
+                for (int m = q - 6; m < q + 90; m++)
+                {
+                    if (Main.tile[l, m] != null && Main.tile[l, m].active())
+                    {
+                        int type = Main.tile[l, m].type;
+                        if (type == TileID.Cloud || type == TileID.RainCloud || type == TileID.Sunplate)
+                        {
+                            q++;
+                        }
+                    }
+                }
+            }
+            toxinpos.Y = q;
+
+            ToxinCenter = toxinpos;
+
+            progress.Message = "Growing the toxins";
+            ToxinCave();
+        }
+
+        public static int GetWorldSize()
+        {
+            if (Main.maxTilesX <= 4200) { return 1; }
+            else if (Main.maxTilesX <= 6400) { return 2; }
+            else if (Main.maxTilesX <= 8400) { return 3; }
+            return 1;
+        }
+
+        public void ToxinCave()
+        {
+            Point origin = new Point((int)toxinpos.X, (int)toxinpos.Y);
+            origin.Y = BaseWorldGen.GetFirstTileFloor(origin.X, origin.Y, true);
+            ToxinDelete delete = new ToxinDelete();
+            ToxinCave biome = new ToxinCave();
+            delete.Place(origin, WorldGen.structures);
+            biome.Place(origin, WorldGen.structures);
+        }
 
         public override void PostUpdate()
         {
@@ -357,6 +210,383 @@ namespace NMIP
                 for (int k = 0; k < (int)(Main.maxTilesX * Main.maxTilesY * 6E-05); k++)
                 {
                     WorldGen.OreRunner(WorldGen.genRand.Next(0, Main.maxTilesX), WorldGen.genRand.Next((int)Main.maxTilesY - 200, Main.maxTilesY), WorldGen.genRand.Next(3, 5), WorldGen.genRand.Next(7, 9), (ushort)mod.TileType("MoltenRock"));
+                }
+            }
+        }
+
+        public static void Spawn(Player player, Mod mod, string name)
+        {
+            if (Main.netMode != 1)
+            {
+                int bossType = mod.NPCType(name);
+                if (NPC.AnyNPCs(bossType)) { return; } //don't spawn if there's already a boss!
+                int npcID = NPC.NewNPC((int)player.Center.X, (int)player.Center.Y, bossType, 0);
+                Main.npc[npcID].Center = player.Center - new Vector2(MathHelper.Lerp(-200f, 200f, (float)Main.rand.NextDouble()), 100f);
+                Main.npc[npcID].netUpdate2 = true; Main.npc[npcID].netUpdate = true;
+            }
+        }
+
+        public static void WorldConvert(int i, int j, int conversionType, int size = 4)
+        {
+            Mod mod = NMIP.instance;
+            for (int k = i - size; k <= i + size; k++)
+            {
+                for (int l = j - size; l <= j + size; l++)
+                {
+                    if (WorldGen.InWorld(k, l, 1) && Math.Abs(k - i) + Math.Abs(l - j) < 6)
+                    {
+                        int type = Main.tile[k, l].type;
+                        int wall = Main.tile[k, l].wall;
+                        bool sendNet = false;
+                        if (conversionType == 1)
+                        {
+                            if (WallID.Sets.Conversion.Stone[wall])
+                            {
+                                Main.tile[k, l].type = (ushort)mod.WallType<ToxinStoneWall>();
+                                WorldGen.SquareWallFrame(k, l, true);
+                                sendNet = true;
+                            }
+                            else if (WallID.Sets.Conversion.Sandstone[wall])
+                            {
+                                Main.tile[k, l].wall = (ushort)mod.WallType<ToxicsandstoneWall>();
+                                WorldGen.SquareWallFrame(k, l, true);
+                                sendNet = true;
+                            }
+                            else if (WallID.Sets.Conversion.HardenedSand[wall])
+                            {
+                                Main.tile[k, l].wall = (ushort)mod.WallType<ToxicsandHardenedWall>();
+                                WorldGen.SquareWallFrame(k, l, true);
+                                sendNet = true;
+                            }
+                            if (TileID.Sets.Conversion.Stone[type])
+                            {
+                                Main.tile[k, l].type = (ushort)mod.TileType<ToxinStone>();
+                                WorldGen.SquareTileFrame(k, l, true);
+                                sendNet = true;
+                            }
+                            else if (TileID.Sets.Conversion.Grass[type] && type != TileID.JungleGrass)
+                            {
+                                Main.tile[k, l].type = (ushort)mod.TileType<ToxinGrass>();
+                                WorldGen.SquareTileFrame(k, l, true);
+                                sendNet = true;
+                            }
+                            else if (TileID.Sets.Conversion.Ice[type])
+                            {
+                                Main.tile[k, l].type = (ushort)mod.TileType<GreenIce>();
+                                WorldGen.SquareTileFrame(k, l, true);
+                                sendNet = true;
+                            }
+                            else if (TileID.Sets.Conversion.Sand[type])
+                            {
+                                Main.tile[k, l].type = (ushort)mod.TileType<Toxicsand>();
+                                WorldGen.SquareTileFrame(k, l);
+                                sendNet = true;
+                            }
+                            else if (TileID.Sets.Conversion.HardenedSand[type])
+                            {
+                                Main.tile[k, l].type = (ushort)mod.TileType<ToxicsandHardened>();
+                                WorldGen.SquareTileFrame(k, l);
+                                sendNet = true;
+                            }
+                            else if (TileID.Sets.Conversion.Sandstone[type])
+                            {
+                                Main.tile[k, l].type = (ushort)mod.TileType<Toxicsandstone>();
+                                WorldGen.SquareTileFrame(k, l);
+                                sendNet = true;
+                            }
+
+                            if (sendNet)
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                        }
+                        else if (conversionType == 6) //Jungle
+                        {
+                            if (wall == 2)
+                            {
+                                Main.tile[k, l].wall = 15;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (wall == 63)
+                            {
+                                Main.tile[k, l].wall = 64;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (WallID.Sets.Conversion.Stone[wall] && wall != WallID.Stone)
+                            {
+                                Main.tile[k, l].wall = WallID.Stone;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (WallID.Sets.Conversion.HardenedSand[wall] && wall != WallID.HardenedSand)
+                            {
+                                Main.tile[k, l].wall = WallID.HardenedSand;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (WallID.Sets.Conversion.Sandstone[wall] && wall != WallID.Sandstone)
+                            {
+                                Main.tile[k, l].wall = WallID.Sandstone;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+
+                            if (type == 0 && Main.tile[k, l].active())
+                            {
+                                Main.tile[k, l].type = TileID.Mud;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (TileID.Sets.Grass[type] || type == TileID.MushroomGrass)
+                            {
+                                Main.tile[k, l].type = TileID.JungleGrass;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (TileID.Sets.Stone[type] && type != TileID.Stone)
+                            {
+                                Main.tile[k, l].type = TileID.Stone;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == 3)
+                            {
+                                Main.tile[k, l].type = 61;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == 52)
+                            {
+                                Main.tile[k, l].type = 62;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == 73)
+                            {
+                                Main.tile[k, l].type = 74;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                        }
+                        else if (conversionType == 7) //Jungle Removal
+                        {
+                            if (wall == 15)
+                            {
+                                Main.tile[k, l].wall = 2;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            if (wall == 64)
+                            {
+                                Main.tile[k, l].wall = 63;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+
+                            if (type == TileID.Mud && Main.tile[k, l].active())
+                            {
+                                Main.tile[k, l].type = 0;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+
+                            else if (type == 60)
+                            {
+                                Main.tile[k, l].type = 2;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == 61)
+                            {
+                                Main.tile[k, l].type = 3;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == 62)
+                            {
+                                Main.tile[k, l].type = 52;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == 74)
+                            {
+                                Main.tile[k, l].type = 73;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                        }
+                        else if (conversionType == 8) //Snow
+                        {
+                            if (wall == 2 || wall == 63 || wall == 65)
+                            {
+                                Main.tile[k, l].wall = 40;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            if (type == 0 && Main.tile[k, l].active() || type == 2 || type == 23 || type == 109 || type == 199)
+                            {
+                                Main.tile[k, l].type = 147;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == 1)
+                            {
+                                Main.tile[k, l].type = 161;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == 25)
+                            {
+                                Main.tile[k, l].type = 163;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == 117)
+                            {
+                                Main.tile[k, l].type = 164;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+
+                            else if (type == 203)
+                            {
+                                Main.tile[k, l].type = 200;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == mod.TileType<ToxinStone>())
+                            {
+                                Main.tile[k, l].type = (ushort)mod.TileType<ToxinStone>();
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                        }
+                        else if (conversionType == 9) //Snowmelt
+                        {
+                            if (wall == WallID.SnowWallUnsafe)
+                            {
+                                Main.tile[k, l].wall = WallID.GrassUnsafe;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            if (wall == WallID.IceUnsafe)
+                            {
+                                Main.tile[k, l].wall = WallID.Stone;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            if (type == TileID.SnowBlock)
+                            {
+                                if ((WorldGen.InWorld(k, l - 1, 1) && Main.tile[k, l - 1].type == TileID.Trees) || (WorldGen.InWorld(k, l + 1, 1) && Main.tile[k, l + 1].type == TileID.Trees) ||
+                                    (WorldGen.InWorld(k, l - 1, 1) && Main.tile[k, l - 1] == null) ||
+                                    (WorldGen.InWorld(k, l + 1, 1) && Main.tile[k, l + 1] == null) ||
+                                    (WorldGen.InWorld(k - 1, l, 1) && Main.tile[k - 1, l] == null) ||
+                                    (WorldGen.InWorld(k - 1, l, 1) && Main.tile[k - 1, l] == null))
+                                {
+                                    Main.tile[k, l].type = 2;
+                                }
+                                else
+                                {
+                                    Main.tile[k, l].type = 0;
+                                }
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == TileID.IceBlock)
+                            {
+                                Main.tile[k, l].type = 1;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == TileID.CorruptIce)
+                            {
+                                Main.tile[k, l].type = TileID.Ebonstone;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == TileID.HallowedIce)
+                            {
+                                Main.tile[k, l].type = TileID.Pearlstone;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == TileID.FleshIce)
+                            {
+                                Main.tile[k, l].type = TileID.Crimstone;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == mod.TileType<GreenIce>())
+                            {
+                                Main.tile[k, l].type = (ushort)mod.TileType<ToxinStone>();
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                        }
+                        else if (conversionType == 11) //Order
+                        {
+                            if (wall == mod.WallType<ToxinStoneWall>())
+                            {
+                                Main.tile[k, l].wall = WallID.Stone;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (wall == mod.WallType<ToxicJungleWall>())
+                            {
+                                Main.tile[k, l].wall = WallID.JungleUnsafe;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (wall == mod.WallType<ToxicsandHardenedWall>())
+                            {
+                                Main.tile[k, l].wall = WallID.HardenedSand;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (wall == mod.WallType<ToxicsandstoneWall>())
+                            {
+                                Main.tile[k, l].wall = WallID.Sandstone;
+                                WorldGen.SquareWallFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == mod.TileType<ToxinStone>())
+                            {
+                                Main.tile[k, l].type = TileID.Stone;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == mod.TileType<ToxinGrass>())
+                            {
+                                Main.tile[k, l].type = TileID.JungleGrass;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == mod.TileType<Toxicsand>())
+                            {
+                                Main.tile[k, l].type = TileID.Sand;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == mod.TileType<ToxicsandHardened>())
+                            {
+                                Main.tile[k, l].type = TileID.Sand;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == mod.TileType<Toxicsandstone>())
+                            {
+                                Main.tile[k, l].type = TileID.Sandstone;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                            else if (type == mod.TileType<GreenIce>())
+                            {
+                                Main.tile[k, l].type = TileID.IceBlock;
+                                WorldGen.SquareTileFrame(k, l, true);
+                                NetMessage.SendTileSquare(-1, k, l, 1);
+                            }
+                        }
+                    }
                 }
             }
         }

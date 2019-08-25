@@ -9,7 +9,6 @@ namespace NMIP.NPCs
     {
         public override void SetStaticDefaults()
         {
-            DisplayName.SetDefault("Molten Slime");
             Main.npcFrameCount[npc.type] = 2;
         }
 

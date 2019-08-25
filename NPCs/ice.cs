@@ -1,16 +1,13 @@
-﻿using System;
-using Terraria.ModLoader;
+﻿using Terraria.ModLoader;
 using Terraria;
 using Terraria.ID;
-using Microsoft.Xna.Framework;
 
 namespace NMIP.NPCs
 {
-    class ice : ModNPC
+    class Ice : ModNPC
     {
         public override void SetStaticDefaults()
         {
-            DisplayName.SetDefault("Frozen Wanderer");
             Main.npcFrameCount[npc.type] = 4;
         }
         public override void SetDefaults()

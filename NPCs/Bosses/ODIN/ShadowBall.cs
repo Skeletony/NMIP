@@ -1,19 +1,11 @@
-﻿using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace NMIP.NPCs.Bosses.ODIN
 {
-	public class ShadowBall : ModNPC
-	{
-		public override void SetStaticDefaults()
-		{
-			DisplayName.SetDefault("Tech Chunk");
-		}
-
+    public class ShadowBall : ModNPC
+    {
 		public override void SetDefaults()
 		{
 			npc.width = npc.height = 40;
@@ -99,7 +91,7 @@ namespace NMIP.NPCs.Bosses.ODIN
 			{
 				for (int k = 0; k < 1; k++)
 				{
-					Vector2 value = -Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 0.19634954631328583), Utils.ToRotation(npc.velocity), default(Vector2));
+                    Vector2 value = -Terraria.Utils.RotatedBy(Terraria.Utils.RotatedByRandom(Vector2.UnitX, 0.19634954631328583), Terraria.Utils.ToRotation(npc.velocity), default(Vector2));
 					int num9 = Dust.NewDust(npc.position, npc.width, npc.height, 111, 0f, 0f, 100, default(Color), 1f);
 					Main.dust[num9].velocity *= 0.1f;
 					Main.dust[num9].position = npc.Center + value * npc.width / 2f;
@@ -110,7 +102,7 @@ namespace NMIP.NPCs.Bosses.ODIN
 			{
 				for (int l = 0; l < 1; l++)
 				{
-					Vector2 value2 = -Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 0.39269909262657166), Utils.ToRotation(npc.velocity), default(Vector2));
+                    Vector2 value2 = -Terraria.Utils.RotatedBy(Terraria.Utils.RotatedByRandom(Vector2.UnitX, 0.39269909262657166), Terraria.Utils.ToRotation(npc.velocity), default(Vector2));
 					int num10 = Dust.NewDust(npc.position, npc.width, npc.height, 111, 0f, 0f, 155, default(Color), 0.8f);
 					Main.dust[num10].velocity *= 0.3f;
 					Main.dust[num10].position = npc.Center + value2 * npc.width / 2f;
@@ -122,7 +114,7 @@ namespace NMIP.NPCs.Bosses.ODIN
 			{
 				for (int m = 0; m < 2; m++)
 				{
-					Vector2 value3 = -Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 0.78539818525314331), Utils.ToRotation(npc.velocity), default(Vector2));
+                    Vector2 value3 = -Terraria.Utils.RotatedBy(Terraria.Utils.RotatedByRandom(Vector2.UnitX, 0.78539818525314331), Terraria.Utils.ToRotation(npc.velocity), default(Vector2));
 					int num11 = Dust.NewDust(npc.position, npc.width, npc.height, 111, 0f, 0f, 0, default(Color), 1.2f);
 					Main.dust[num11].velocity *= 0.3f;
 					Main.dust[num11].noGravity = true;

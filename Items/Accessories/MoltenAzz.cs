@@ -31,14 +31,14 @@ namespace NMIP.Items.Accessories
             player.buffImmune[24] = true;
             player.buffImmune[153] = true;
             player.buffImmune[39] = true;
-            if (player.lavaWet == true && player.GetModPlayer<NMIPPlayer>(mod).MoltenEffect == false)
+            if (player.lavaWet == true && player.GetModPlayer<NMIPPlayer>(mod).moltenEffect == false)
             {
                 player.statDefense += 20;
                 player.magicDamage += 0.2f;
                 player.meleeDamage += 0.2f;
                 player.thrownDamage += 0.2f;
                 player.rangedDamage += 0.2f;
-                player.GetModPlayer<NMIPPlayer>(mod).GodMoltenEffect = true;
+                player.GetModPlayer<NMIPPlayer>(mod).godMoltenEffect = true;
             }
         }
 

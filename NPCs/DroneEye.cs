@@ -1,8 +1,6 @@
-﻿using System;
-using Terraria.ModLoader;
+﻿using Terraria.ModLoader;
 using Terraria;
 using Terraria.ID;
-using Microsoft.Xna.Framework;
 
 namespace NMIP.NPCs
 {
@@ -10,7 +8,6 @@ namespace NMIP.NPCs
     {
         public override void SetStaticDefaults()
         {
-            DisplayName.SetDefault("Drone Eye");
             Main.npcFrameCount[npc.type] = 4;
         }
         public override void SetDefaults()

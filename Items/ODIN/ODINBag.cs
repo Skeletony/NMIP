@@ -5,12 +5,6 @@ namespace NMIP.Items.ODIN
 {
     public class ODINBag : ModItem
     {
-        public override void SetStaticDefaults()
-        {
-            DisplayName.SetDefault("Treasure Bag");
-            Tooltip.SetDefault("{$CommonItemTooltip.RightClickToOpen}");
-        }
-
         public override void SetDefaults()
         {
             item.maxStack = 999;
@@ -19,13 +13,14 @@ namespace NMIP.Items.ODIN
             item.height = 32;
             item.rare = 9;
             item.expert = true;
-            bossBagNPC = mod.NPCType("ODIN");
         }
 
         public override bool CanRightClick()
         {
             return true;
         }
+
+        public override int BossBagNPC => mod.NPCType("ODIN");
 
         public override void OpenBossBag(Player player)
         {

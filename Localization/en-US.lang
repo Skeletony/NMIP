@@ -1,0 +1,16 @@
+﻿ItemName.ODINBag=Treasure Bag
+ItemTooltip.ODINBag={$CommonItemTooltip.RightClickToOpen}
+
+NPCName.DroneEye=Drone Eye
+
+NPCName.Ice=Frozen Wanderer
+
+NPCName.MoltenFloat=Magmatic Wanderer
+
+NPCName.MoltenSlime=Molten Slime
+
+ProjectileName.CrystalShadow=Tech Laser
+
+ProjectileName.ShadowBall=Tech Chunk
+
+NPCName.ODIN=ODIN
