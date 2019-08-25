@@ -1,3 +1,5 @@
+using Microsoft.Xna.Framework;
+using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -36,7 +38,6 @@ namespace NMIP.NPCs.Bosses.Starboss
 
             Phase = 0;
             Counter = 0;
-            Angle = -1;
         }
 
         public int Phase
@@ -51,12 +52,6 @@ namespace NMIP.NPCs.Bosses.Starboss
             set => npc.ai[1] = value;
         }
 
-        public int Angle
-        {
-            get => (int)npc.ai[2];
-            set => npc.ai[2] = value;
-        }
-
         private Player Target => Main.player[npc.target];
 
         private const byte FloatPhase = 0;
@@ -68,42 +63,33 @@ namespace NMIP.NPCs.Bosses.Starboss
             npc.TargetClosest();
             if (Phase == FloatPhase)
             {
-                //floats 40 (pixels?) above the player
-                npc.velocity.X = Target.Center.X - npc.Center.X;
-                npc.velocity.Y = npc.position.Y - Target.position.Y - 40;
+                //floats 240 pixels above the player
+                npc.velocity = Target.Center - new Vector2(0, 240) - npc.Center;
                 npc.velocity.Normalize();
                 //drag veloc is 60% of player veloc
-                npc.velocity *= Target.velocity * .6f;
+                npc.velocity *= (Target.velocity.Length() + 3) * .6f;
 
                 //spawn proj every 30 ticks
-                if (Main.netMode != 1 && Counter % 30 == 0)
+                if (Counter % 30 == 0 && Main.netMode != 1)
                 {
-                    Angle = Main.rand.Next(360);
-                    npc.netUpdate = true;
-                }
-                else if (Angle != -1)
-                {
-                    //proj speed of 4
-                    Projectile.NewProjectile(npc.Center, NMIPUtils.SinCos(Angle) * 4,
+                    var a = Main.rand.Next(360);
+                    var p = Projectile.NewProjectileDirect(npc.Center, NMIPUtils.SinCos(a) * 4,
                         mod.ProjectileType("AstralShot"), Damage: 100, KnockBack: 1.2f);
-                    Angle = -1;
+                    NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, p.whoAmI);
+                    p = Projectile.NewProjectileDirect(npc.Center, NMIPUtils.SinCos(a + 180) * 4,
+                        mod.ProjectileType("AstralShot"), Damage: 100, KnockBack: 1.2f);
+                    NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, p.whoAmI);
                 }
             }
             else if (Phase == CirclePhase)
             {
-                var t = NMIPUtils.SinCos(++Angle);
-                //avg dist to player is 40
-                t *= 40f;
-                t += Target.Center;
-                npc.velocity = t - npc.position;
-                npc.velocity.Normalize();
-                //drag veloc is 90% of player veloc
-                npc.velocity *= Target.velocity * .9f;
+                //adjust .8f for speed
+                var d = NMIPUtils.SinCos((int)(Counter * .8f) + 200) * 240 + Target.Center;
+                npc.velocity = d - npc.Center;
 
-                //spawn proj every 30 ticks
-                if (Counter % 30 == 0)
+                //spawn proj every second
+                if (Counter % 60 == 0)
                 {
-                    //ten projectiles, perfect circle
                     for (int i = 0; i < 360; i += 36)
                     {
                         //proj speed of 4
@@ -114,30 +100,44 @@ namespace NMIP.NPCs.Bosses.Starboss
             }
             else if (Phase == TelePhase)
             {
-                //teleport every 30 ticks
-                if (Main.netMode != 1 && Counter % 30 == 0)
+                //teleport every 2 seconds
+                if (Counter % 120 == 0 && Main.netMode != 1)
                 {
-                    Angle = Main.rand.Next(360);
-                    Angle |= (Main.rand.Next(50) << 16);
-                    npc.netUpdate = true;
+                    //auto syncs
+                    npc.Teleport(Target.position + NMIPUtils.SinCos(Main.rand.Next(360)) * Main.rand.Next(300, 400));
                 }
-                else if (Angle != -1)
+                //spawn proj every 30 ticks
+                else if (Counter % 30 == 0)
                 {
-                    //i'm sorry this is a super crappy method of doing anything - Agrair
-                    var veloc = NMIPUtils.SinCos(Angle & 0b1111111111111111);
-                    veloc *= Angle >> 16;
-                    npc.position = Target.Center + veloc;
+                    var v = Target.position - npc.position;
+                    v.Normalize();
+                    //speed of 4
+                    Projectile.NewProjectile(npc.Center, v * 4,
+                        mod.ProjectileType<AstralShot>(), Damage: 100, KnockBack: 1.2f);
                 }
             }
 
-            //each phase lasts 5 seconds
-            if (Counter == 5 * 60)
+            //each phase lasts 10 seconds
+            if (Counter++ == 10 * 60)
             {
-                Phase++;
-                if (Phase == 3) Phase = 0;
-                Angle = -1;
+                Counter = 0;
+                switch (Phase)
+                {
+                    case 0:
+                        var v = Target.position - npc.position;
+                        Main.NewText(Counter);
+                        npc.velocity = Vector2.Zero;
+                        Phase = CirclePhase;
+                        return;
+                    case 1:
+                        npc.velocity = Vector2.Zero;
+                        Phase = TelePhase;
+                        return;
+                    case 2:
+                        Phase = FloatPhase;
+                        return;
+                }
             }
-            Counter++;
         }
     }
 }
