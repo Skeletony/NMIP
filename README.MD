@@ -5,5 +5,8 @@ The NMIP mod adds a buch of content with;
 - New upcoming biome
 - New weapons, armor, materials and accessories
 
-## Notices
-The files are outdated and is never going to be updated unless there is going to be a dev team, which the repo will be private again.
+## Upcoming Content
+- New boss, Astral Observer
+- Two new biomes (one already implemented)
+- New enemies
+- New items
