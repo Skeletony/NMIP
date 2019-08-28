@@ -84,7 +84,7 @@ namespace NMIP.NPCs.Bosses.Starboss
             else if (Phase == CirclePhase)
             {
                 //adjust .8f for speed
-                var d = NMIPUtils.SinCos((int)(Counter * .8f) + 200) * 240 + Target.Center;
+                var d = NMIPUtils.SinCos((int)(Counter * .8f)) * 240 + Target.Center;
                 npc.velocity = d - npc.Center;
 
                 //spawn proj every second
@@ -125,8 +125,9 @@ namespace NMIP.NPCs.Bosses.Starboss
                 {
                     case 0:
                         var v = Target.position - npc.position;
-                        Main.NewText(Counter);
+                        Counter = MathHelper.ToDegrees(Math.Atan2(v.Y, v.X));
                         npc.velocity = Vector2.Zero;
+                        Counter = 
                         Phase = CirclePhase;
                         return;
                     case 1:
